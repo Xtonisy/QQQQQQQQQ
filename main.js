@@ -1,97 +1,70 @@
-const todoControl = document.querySelector (".todo-control"),
+let todoControl = document.querySelector (".todo-control"),
 todoList = document.querySelector (".todo-list"),
 todoCompleted = document.querySelector (".todo-completed"),
-todoContainer = document.querySelector (".todo-container");
+todoContainer = document.querySelector (".todo-container"),
+cooka=document.cookie.split("=");
+obj = JSON.parse(cooka[1]?cooka[1]:"[]");
 
-let obj;
-let storageData = JSON.parse(localStorage.getItem("obj"));
-if (storageData==null){
-    obj = [
-    {
-        value: "Сварить кофе",
-        completed: false
-    },
-
-    {
-        value: "Помыть посуду",
-        completed: true
-    }
-];
-}else{
-    obj = storageData;
-};
-
-const resolve = () =>{
+const render = () =>{
+    todoList.textContent="";
+    todoCompleted.textContent="";
     let tempObj=[];
     if (obj==null) obj=[];
     obj.forEach((el)=>{
         if (el!=null) tempObj.push(el);
     });
     obj=tempObj;     
+    
+    obj.forEach((el) =>{
+        const li = document.createElement("li");
+        li.classList.add("todo-item");
+        li.innerHTML = `<span class="text-todo">${el.value}</span>
+        <div class="todo-buttons">
+        <button class="todo-remove"></button>
+        <button class="todo-complete"></button>
+        </div>`;
+        if (el.completed) todoCompleted.append(li);
+        else todoList.append(li);
+    });
+    document.cookie = "todo-list=" + JSON.stringify(obj);
+    console.log(document.cookie);
 };
-
-const render = () =>{
-    todoList.textContent="";
-    todoCompleted.textContent="";
-
-    resolve();
-
-    for(let i=0; i<obj.length;i++){
-        if (obj[i]!=null){
-            const li = document.createElement("li");
-            li.classList.add("todo-item");
-            li.innerHTML = `<span class="text-todo">${obj[i].value}</span>
-            <div class="todo-buttons">
-            <button class="todo-remove"></button>
-            <button class="todo-complete"></button>
-            </div>`;
-            if (obj[i].completed) todoCompleted.append(li);
-            else todoList.append(li);
-         };
-    };
-    localStorage.obj=JSON.stringify(obj);
-}
 render();
 
 todoControl.addEventListener("submit", (event) =>{
     event.preventDefault();
-    const input = todoControl.querySelector("input");
+    let input = todoControl.querySelector("input");
     if (input.value!=""){
         newObj = {value: input.value, completed: false}
+        input.value="";
         obj.push(newObj);
-        input.value = "";
-    }
-    render();
+        render();
+    }else{
+        alert("Введите текст!");
+    };
 } );
 
 const search = (elem) =>{
-    const elemText = elem.querySelector("span").textContent,
+    let elemText = elem.querySelector("span").textContent,
     elemCompleted = todoCompleted.contains(elem);
     obj.forEach((el, index) =>{
         if(el.value === elemText) {
-            if (el.completed === elemCompleted) {
-                ind = index;
-            }
+            if (el.completed === elemCompleted) ind = index;
         }
     })
-        return ind;
+    return ind;
 }
 
 todoContainer.addEventListener("click", (event) =>{
     event.preventDefault();
-    const target = event.target;
+    let target = event.target;
     if(!target.matches("button")) return;
     let index = search(target.closest("li"));
-    if (target.matches(".todo-complete")){
-        if (obj[index].completed=obj[index].completed==true){
-            obj[index].completed = false;
-        }
-        else{
-            obj[index].completed = true;
-        }
-    }
-    else if (target.matches(".todo-remove")){
+    if (target.matches(".todo-remove")){
         delete obj[index];
+    }else if (target.matches(".todo-complete")){
+        obj[index].completed=obj[index].completed==true?false:true;
     };
     render();
-})
+});
+
